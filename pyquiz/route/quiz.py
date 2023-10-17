@@ -16,15 +16,15 @@ router = APIRouter(
 
 async def populate_db(sess, qnum):
     questions = await get_questions(qnum)
-    t_date = datetime.now()
     while questions:
         qs = questions.pop()
         try :
+            td = datetime.strptime(qs["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
             i = insert(Question).values(
                 external_id = qs["id"],
                 text= qs["question"],
                 answer= qs["answer"],
-                create_date= t_date
+                create_date= td
             )
             await sess.execute(i)
             await sess.commit()
@@ -36,7 +36,4 @@ async def populate_db(sess, qnum):
 
 @router.post("/random")
 async def _post(sess: SessionDependency, data: QuizRequest):
-    try:
-        await populate_db(sess, data.question_num)
-    except Exception as e:
-        pass
+    await populate_db(sess, data.question_num)

@@ -11,4 +11,4 @@ class Question(QuizBase):
     external_id = mapped_column(sa.Integer, unique=True)
     text = mapped_column(sa.Text)
     answer = mapped_column(sa.Text)
-    create_date = mapped_column(sa.DateTime)
+    create_date = mapped_column(type_=sa.TIMESTAMP(timezone=True))

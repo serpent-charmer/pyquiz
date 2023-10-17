@@ -5,37 +5,36 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 import pytest_asyncio
-from sqlalchemy import NullPool
+from sqlalchemy import NullPool, select
 from pyquiz import app
 from httpx import AsyncClient
 from sqlalchemy.schema import CreateSchema
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from pyquiz.db import DATABASE_URL, get_session
-from pyquiz.model import QuizBase
+from pyquiz.db import DATABASE_URL, SessionDependency, get_session
+from pyquiz.model import Question, QuizBase
 
 
 test_schema = "test"
 engine = create_async_engine(DATABASE_URL, echo=False, execution_options={
                              "schema_translate_map": {None: test_schema}},
                              poolclass=NullPool)
-async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def client(myapp: FastAPI):
     async with AsyncClient(app=myapp, base_url="http://testserver") as client:
         yield client
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 def event_loop():
     selector = selectors.SelectSelector()
     loop = asyncio.SelectorEventLoop(selector)
@@ -44,6 +43,7 @@ def event_loop():
 
 
 async def sess() -> AsyncIterator[AsyncSession]:
+    async_session = async_sessionmaker(engine, expire_on_commit=False)
     async with async_session() as session:
         try:
             yield session
@@ -77,11 +77,11 @@ def myapp():
 
 @pytest.mark.anyio
 async def test_add_quiz(client: AsyncClient):
-    rs = await client.post("/quiz/random", json={"question_num": 5})
-    print(rs.content)
-    assert 1 == 0
+    rs = await client.post("/quiz/random", json={"question_num": 1})
+    rs = await client.get("/question/get", params={"question_id": 1})
+    assert rs.content != b'null'
 
 @pytest.mark.anyio
 async def test_no_question(client: AsyncClient):
-    rs = await client.post("/question/get", json={"question_id": 1})
+    rs = await client.get("/question/get", params={"question_id": 1})
     assert rs.content == b'null'

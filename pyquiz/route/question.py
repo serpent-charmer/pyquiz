@@ -11,9 +11,9 @@ router = APIRouter(
         )
 
 
-@router.post("/get")
-async def _post(sess:SessionDependency, data: QuestionRequest):
-    question = await sess.execute(
-        select(Question).where(Question._id == data.question_id)
+@router.get("/get")
+async def _get(sess:SessionDependency, question_id: int):
+    question = await sess.scalars(
+        select(Question).where(Question._id == question_id)
     )
-    return question.scalar()
+    return question.first()
