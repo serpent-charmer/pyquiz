@@ -1,4 +1,5 @@
 import asyncio
+import json
 import selectors
 from typing import AsyncIterator
 from fastapi import FastAPI
@@ -79,9 +80,9 @@ def myapp():
 async def test_add_quiz(client: AsyncClient):
     rs = await client.post("/quiz/random", json={"question_num": 1})
     rs = await client.get("/question/get", params={"question_id": 1})
-    assert rs.content != b'null'
+    assert json.loads(rs.content) != {}
 
 @pytest.mark.anyio
 async def test_no_question(client: AsyncClient):
     rs = await client.get("/question/get", params={"question_id": 1})
-    assert rs.content == b'null'
+    assert json.loads(rs.content) == {}

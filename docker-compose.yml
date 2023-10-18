@@ -13,6 +13,8 @@ services:
     
   pyquiz:
     build: .
+    depends_on:
+      - quiz_db
     ports:
       - "8000:80"
     networks:

@@ -11,4 +11,4 @@ COPY pyquiz /app/pyquiz
 COPY scripts /app/scripts
 COPY alembic.ini /app
 
-CMD poetry run alembic upgrade head && poetry run uvicorn pyquiz:app --host 0.0.0.0 --port 80
+CMD poetry run pytest && poetry run alembic upgrade head && poetry run uvicorn pyquiz:app --host 0.0.0.0 --port 80

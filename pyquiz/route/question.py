@@ -16,4 +16,4 @@ async def _get(sess:SessionDependency, question_id: int):
     question = await sess.scalars(
         select(Question).where(Question._id == question_id)
     )
-    return question.first()
+    return question.first() or {}
